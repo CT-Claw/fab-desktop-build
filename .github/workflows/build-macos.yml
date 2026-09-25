@@ -1,0 +1,91 @@
+name: Build Chituo macOS artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Build version, for example 2.2.13-chituo.9'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Apple Silicon
+            runner: macos-15
+            architecture: arm64
+          - name: macOS Intel
+            runner: macos-15-intel
+            architecture: x64
+
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.18.0'
+          package-manager-cache: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+        with:
+          version: 10.33.0
+          run_install: false
+
+      - name: Install build dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build unsigned, unnotarized package
+        env:
+          CHITUO_PUBLIC_MAC_BUILD: '1'
+          DESKTOP_BUILD_PROFILE_PATH: branding/chituo/desktop-build-profile.json
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          CSC_IDENTITY_AUTO_DISCOVERY_DISABLED: 'true'
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          node -e "const fs=require('fs'); const v=process.env.VERSION; const p=JSON.parse(fs.readFileSync('package.json')); if (!/^\\d+\\.\\d+\\.\\d+-chituo\\.\\d+$/.test(v) || p.version !== v) throw new Error('version input must match the snapshot package version')"
+          node -e "const fs=require('fs'); for (const p of ['apps/desktop/resources/bin/lobe-cli.js','apps/desktop/resources/cli-package.json']) fs.accessSync(p)"
+          pnpm run desktop:package:mac
+
+      - name: Validate packaged identity and architecture
+        env:
+          EXPECTED_ARCH: ${{ matrix.architecture }}
+        run: |
+          set -euo pipefail
+          test -n "$(find apps/desktop/release -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+          test -n "$(find apps/desktop/release -maxdepth 1 -type f -name '*.zip' -print -quit)"
+          archive="$(find apps/desktop/release -maxdepth 1 -type f -name '*.zip' -print -quit)"
+          mkdir -p "$RUNNER_TEMP/chituo-mac"
+          ditto -x -k "$archive" "$RUNNER_TEMP/chituo-mac"
+          node apps/desktop/scripts/validatePackagedIdentity.mjs "$RUNNER_TEMP/chituo-mac"
+          app="$(find "$RUNNER_TEMP/chituo-mac" -maxdepth 4 -name '*.app' -print -quit)"
+          test -n "$app"
+          test "$(/usr/bin/file "$app/Contents/MacOS/ChituoAI" | grep -c "$EXPECTED_ARCH")" -eq 1
+
+      - name: Create checksums
+        run: |
+          set -euo pipefail
+          cd apps/desktop/release
+          find . -maxdepth 1 -type f \( -name '*.dmg' -o -name '*.zip' \) -print0 | sort -z | xargs -0 shasum -a 256 > SHA256SUMS
+
+      - name: Upload Mac artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: chituo-macos-${{ matrix.architecture }}-${{ inputs.version }}
+          if-no-files-found: error
+          path: |
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.zip
+            apps/desktop/release/SHA256SUMS
