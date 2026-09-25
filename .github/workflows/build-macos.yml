@@ -70,7 +70,15 @@ jobs:
           node apps/desktop/scripts/validatePackagedIdentity.mjs "$RUNNER_TEMP/chituo-mac"
           app="$(find "$RUNNER_TEMP/chituo-mac" -maxdepth 4 -name '*.app' -print -quit)"
           test -n "$app"
-          test "$(/usr/bin/file "$app/Contents/MacOS/ChituoAI" | grep -c "$EXPECTED_ARCH")" -eq 1
+          executable="$(find "$app/Contents/MacOS" -maxdepth 1 -type f -print -quit)"
+          test -n "$executable"
+          test -x "$executable"
+          file_output="$(/usr/bin/file "$executable")"
+          case "$EXPECTED_ARCH" in
+            arm64) printf '%s\n' "$file_output" | grep -Eq 'arm64|ARM64' ;;
+            x64) printf '%s\n' "$file_output" | grep -Eq 'x86_64|x86-64' ;;
+            *) echo "Unsupported expected architecture: $EXPECTED_ARCH" >&2; exit 1 ;;
+          esac
 
       - name: Create checksums
         run: |
