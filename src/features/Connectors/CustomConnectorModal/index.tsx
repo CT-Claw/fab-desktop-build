@@ -10,7 +10,13 @@ import { connectorSelectors } from '@/store/tool/slices/connector';
 import { executeLegacyMigrationSave } from './legacyPluginMigration';
 
 interface CustomConnectorModalProps {
+  /** Create the connector directly in this agent's scope. */
+  agentId?: string;
   connectorId?: string;
+  /** Non-secret source attribution persisted with a create-mode preset. */
+  initialMetadata?: Record<string, unknown>;
+  /** Optional create-mode preset, for example a local market MCP manifest. */
+  initialValue?: LobeToolCustomPlugin;
   /**
    * Legacy `user_installed_plugins` record being upgraded to a connector. When
    * set (and `connectorId` is not), the modal opens in **migration mode**: the
@@ -95,7 +101,16 @@ const cleanRecord = (record?: Record<string, string>): Record<string, string> | 
  * - Clears credentials when the server URL changes
  */
 const CustomConnectorModal = memo<CustomConnectorModalProps>(
-  ({ open, onClose, connectorId, legacyPlugin, onEditSuccess }) => {
+  ({
+    open,
+    onClose,
+    agentId,
+    connectorId,
+    initialMetadata,
+    initialValue,
+    legacyPlugin,
+    onEditSuccess,
+  }) => {
     const createConnector = useToolStore((s) => s.createConnector);
     const deleteConnector = useToolStore((s) => s.deleteConnector);
     const updateConnector = useToolStore((s) => s.updateConnector);
@@ -152,6 +167,7 @@ const CustomConnectorModal = memo<CustomConnectorModalProps>(
     // already in the shape DevModal expects, so we hand it through unchanged.
     const editValue = useMemo((): LobeToolCustomPlugin | undefined => {
       if (isMigrationMode) return legacyPlugin;
+      if (!isEditMode && initialValue) return initialValue;
       if (!isEditMode || !connector || editFetchedData === null) return undefined;
 
       const c = connector as typeof connector & {
@@ -199,7 +215,7 @@ const CustomConnectorModal = memo<CustomConnectorModalProps>(
         identifier: connector.identifier,
         type: 'customPlugin' as const,
       };
-    }, [isEditMode, isMigrationMode, legacyPlugin, connector, editFetchedData]);
+    }, [isEditMode, isMigrationMode, legacyPlugin, initialValue, connector, editFetchedData]);
 
     const handleSave = async (
       value: LobeToolCustomPlugin,
@@ -331,6 +347,7 @@ const CustomConnectorModal = memo<CustomConnectorModalProps>(
 
       // ── Create mode ───────────────────────────────────────────────────────
       const base = {
+        agentId,
         identifier,
         mcpConnectionType: (mcp.type ?? 'http') as 'http' | 'stdio',
         mcpServerUrl: isHttp ? mcp.url?.trim() : undefined,
@@ -341,7 +358,10 @@ const CustomConnectorModal = memo<CustomConnectorModalProps>(
               command: (mcp.command ?? '').trim(),
               env: cleanRecord(mcp.env),
             },
-        name: identifier,
+        name:
+          typeof initialMetadata?.displayName === 'string'
+            ? initialMetadata.displayName
+            : identifier,
         sourceType: ConnectorSourceType.custom,
       };
 
@@ -370,6 +390,7 @@ const CustomConnectorModal = memo<CustomConnectorModalProps>(
           if (result.status !== 'success') {
             throw new Error(result.error || 'Authorization was not completed');
           }
+          onEditSuccess?.();
         } catch (e) {
           // Close the blank/in-flight popup we opened so it isn't left dangling.
           // On success the OAuth callback page closes it itself.
@@ -389,6 +410,10 @@ const CustomConnectorModal = memo<CustomConnectorModalProps>(
           ? ({ token: mcp.auth.token.trim(), type: 'bearer' } as const)
           : undefined;
       const headers = cleanRecord(mcp.headers);
+      const metadata = {
+        ...initialMetadata,
+        ...(headers ? { customHeaders: headers } : {}),
+      };
 
       // `connector.create` is an idempotent upsert on (user, identifier);
       // `isNew` is the server's verdict on whether this row was freshly
@@ -399,7 +424,7 @@ const CustomConnectorModal = memo<CustomConnectorModalProps>(
       const { id: newConnectorId, isNew } = await createConnector({
         ...base,
         credentials,
-        metadata: headers ? { customHeaders: headers } : undefined,
+        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
       });
       try {
         await syncConnectorTools(newConnectorId);
@@ -410,6 +435,7 @@ const CustomConnectorModal = memo<CustomConnectorModalProps>(
         if (isNew) await deleteConnector(newConnectorId);
         throw e;
       }
+      onEditSuccess?.();
     };
 
     // In migration mode the Delete button must actually uninstall the legacy

@@ -1,10 +1,10 @@
 'use client';
 
-import { COMPOSIO_APP_TYPES, LOBEHUB_SKILL_PROVIDERS } from '@lobechat/const';
+import { getConnectorCatalog } from '@lobechat/const';
 import { getActivePluginIds, upsertPluginMode } from '@lobechat/types';
 import type { ItemType } from '@lobehub/ui';
-import { Avatar, Flexbox, Icon } from '@lobehub/ui';
-import { Button } from '@lobehub/ui/base-ui';
+import { Flexbox, Icon } from '@lobehub/ui';
+import { Avatar, Button } from '@lobehub/ui/base-ui';
 import { McpIcon, SkillsIcon } from '@lobehub/ui/icons';
 import { cssVar } from 'antd-style';
 import isEqual from 'fast-deep-equal';
@@ -176,7 +176,7 @@ const AgentTool = memo<AgentToolProps>(
     ]);
     useFetchInstalledPlugins();
     useFetchUninstalledBuiltinTools(true);
-    useFetchAgentSkills(true);
+    const { data: fetchedAgentSkills } = useFetchAgentSkills(true);
     useCheckPluginsIsInstalled(plugins);
 
     // Load user's Composio integrations via SWR (from database)
@@ -242,10 +242,34 @@ const AgentTool = memo<AgentToolProps>(
       [togglePlugin],
     );
 
-    // Get all Composio server type identifiers (used to filter the builtin list)
-    const allComposioTypeIdentifiers = useMemo(
-      () => new Set(COMPOSIO_APP_TYPES.map((type) => type.identifier)),
-      [],
+    const connectorCatalog = useMemo(
+      () =>
+        getConnectorCatalog({
+          composio: isComposioEnabledInEnv,
+          lobehub: isLobehubSkillEnabled,
+        }),
+      [isComposioEnabledInEnv, isLobehubSkillEnabled],
+    );
+    const connectorIdentifiers = useMemo(
+      () =>
+        new Set(
+          connectorCatalog.map((item) =>
+            item.type === 'lobehub' ? item.provider.id : item.serverType.identifier,
+          ),
+        ),
+      [connectorCatalog],
+    );
+    const composioConnectorTypes = useMemo(
+      () =>
+        connectorCatalog
+          .filter((item) => item.type === 'composio')
+          .map(({ serverType }) => serverType),
+      [connectorCatalog],
+    );
+    const lobehubConnectorProviders = useMemo(
+      () =>
+        connectorCatalog.filter((item) => item.type === 'lobehub').map(({ provider }) => provider),
+      [connectorCatalog],
     );
 
     // Get all skill identifiers (used to filter the builtin list)
@@ -271,10 +295,8 @@ const AgentTool = memo<AgentToolProps>(
         ) as ListType;
       }
 
-      // Filter out Composio tools if Composio is enabled
-      if (isComposioEnabledInEnv) {
-        list = list.filter((item) => !allComposioTypeIdentifiers.has(item.identifier));
-      }
+      // Connector identifiers are rendered through their canonical owner below.
+      list = list.filter((item) => !connectorIdentifiers.has(item.identifier));
 
       // Filter out skills (they are shown separately)
       list = list.filter((item) => !allSkillIdentifiers.has(item.identifier));
@@ -282,8 +304,7 @@ const AgentTool = memo<AgentToolProps>(
       return list;
     }, [
       profileBuiltinList,
-      allComposioTypeIdentifiers,
-      isComposioEnabledInEnv,
+      connectorIdentifiers,
       filterAvailableInWeb,
       useAllMetaList,
       allSkillIdentifiers,
@@ -293,7 +314,7 @@ const AgentTool = memo<AgentToolProps>(
     const composioServerItems = useMemo(
       () =>
         isComposioEnabledInEnv
-          ? COMPOSIO_APP_TYPES.map((type) => ({
+          ? composioConnectorTypes.map((type) => ({
               icon: (
                 <ComposioSkillIcon icon={type.icon} label={type.label} size={SKILL_ICON_SIZE} />
               ),
@@ -322,14 +343,14 @@ const AgentTool = memo<AgentToolProps>(
               ),
             }))
           : [],
-      [isComposioEnabledInEnv, allComposioServers, effectiveAgentId, t],
+      [isComposioEnabledInEnv, composioConnectorTypes, allComposioServers, effectiveAgentId, t],
     );
 
     // LobeHub Skill Provider list items
     const lobehubSkillItems = useMemo(
       () =>
         isLobehubSkillEnabled
-          ? LOBEHUB_SKILL_PROVIDERS.map((provider) => ({
+          ? lobehubConnectorProviders.map((provider) => ({
               icon: (
                 <LobehubSkillIcon
                   icon={provider.icon}
@@ -358,7 +379,7 @@ const AgentTool = memo<AgentToolProps>(
               ),
             }))
           : [],
-      [isLobehubSkillEnabled, effectiveAgentId, t, defaultSkillName],
+      [isLobehubSkillEnabled, lobehubConnectorProviders, effectiveAgentId, t, defaultSkillName],
     );
 
     // Handle plugin remove via Tag close - use byId actions
@@ -734,14 +755,11 @@ const AgentTool = memo<AgentToolProps>(
       // 2. Installed plugins
       for (const plugin of installedPluginList) all.add(plugin.identifier);
 
-      // 3. Composio server types (if enabled)
-      if (isComposioEnabledInEnv) {
-        for (const type of COMPOSIO_APP_TYPES) all.add(type.identifier);
-      }
-
-      // 4. LobeHub Skill providers (if enabled)
-      if (isLobehubSkillEnabled) {
-        for (const provider of LOBEHUB_SKILL_PROVIDERS) all.add(provider.id);
+      // 3. Canonical connector identifiers
+      for (const connector of connectorCatalog) {
+        all.add(
+          connector.type === 'lobehub' ? connector.provider.id : connector.serverType.identifier,
+        );
       }
 
       // 5. Builtin skills
@@ -760,8 +778,7 @@ const AgentTool = memo<AgentToolProps>(
     }, [
       knownBuiltinList,
       installedPluginList,
-      isComposioEnabledInEnv,
-      isLobehubSkillEnabled,
+      connectorCatalog,
       installedBuiltinSkills,
       marketAgentSkills,
       userAgentSkills,
@@ -782,6 +799,7 @@ const AgentTool = memo<AgentToolProps>(
           canEditContent: canEdit,
           canEditResource,
           isAccessResolved,
+          isAgentSkillsInit: fetchedAgentSkills !== undefined,
           isConnectorsInit,
           plugins: config?.plugins,
           validIdentifiers,
@@ -803,7 +821,14 @@ const AgentTool = memo<AgentToolProps>(
 
       return () => clearTimeout(timer);
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [validIdentifiers, canEdit, canEditResource, isAccessResolved, isConnectorsInit]);
+    }, [
+      validIdentifiers,
+      canEdit,
+      canEditResource,
+      isAccessResolved,
+      fetchedAgentSkills,
+      isConnectorsInit,
+    ]);
 
     // Only display tools that this profile surface actually manages. Runtime-
     // managed entries remain untouched in config for compatibility with other
@@ -846,7 +871,7 @@ const AgentTool = memo<AgentToolProps>(
                   onClose={() => setDropdownOpen(false)}
                   onOpenStore={() => {
                     setDropdownOpen(false);
-                    createSkillStoreModal();
+                    createSkillStoreModal(effectiveAgentId);
                   }}
                 />
               )}

@@ -96,11 +96,31 @@ export const styles = createStaticStyles(({ css, cssVar }) => ({
     button {
       margin-block-start: auto;
     }
+    button:disabled {
+      border-color: ${cssVar.colorBorderSecondary};
+      color: ${cssVar.colorTextSecondary};
+      background: ${cssVar.colorFillTertiary};
+      opacity: 1;
+    }
   `,
   meta: css`
     color: ${cssVar.colorTextSecondary};
     font-size: 13px;
     line-height: 20px;
     overflow-wrap: anywhere;
+  `,
+  pagination: css`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-block: 20px;
+
+    button:disabled {
+      border-color: ${cssVar.colorBorderSecondary};
+      color: ${cssVar.colorTextSecondary};
+      background: ${cssVar.colorFillTertiary};
+      opacity: 1;
+    }
   `,
 }));

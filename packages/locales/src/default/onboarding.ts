@@ -66,7 +66,7 @@ export default {
   'agent.welcome.suggestion.switch': 'Try another set',
   'agent.welcome.suggestion.title': 'Need a starting point? Pick one and we can refine it later.',
   'agent.welcome.footer':
-    'Configure your Chituo AI Assistant Agent. It learns from every interaction, and the longer it runs, the better it gets to know you.',
+    'Configure your Lobe AI Agent. It learns from every interaction, and the longer it runs, the better it gets to know you.',
   'agent.welcome': 'Start by choosing my name and avatar. You can change them any time.',
   'agent.welcome.suggestion.avatarHint': 'Use {{emoji}} as the avatar.',
   'agent.welcome.sentence.1': "...hm? I just woke up — my mind's a blank.",
@@ -89,12 +89,127 @@ export default {
   'agentPicker.title': "Let's add a few agents to your library",
   'agentPicker.title2': 'Pick the ones that match how you work',
   'agentPicker.title3': 'You can always add more later — start with a few',
-  'localAssistantOnboarding.later': 'Skip for now',
-  'localAssistantOnboarding.subtitle':
-    'Choose a domain to browse and install local assistants when you need them. The full directory remains available from Add assistant.',
-  'localAssistantOnboarding.title': 'Start with the local assistant directory',
   'back': 'Back',
   'finish': 'Get Started',
+  'flow.footer.continue': 'Continue',
+  'flow.footer.hint': '💡 You can edit this later',
+  'flow.skip': 'Skip',
+  'flow.steps.chiefAgent.avatarUpload': 'Upload your own avatar',
+  'flow.steps.chiefAgent.birthday': 'Born {{date}}',
+  'flow.steps.chiefAgent.defaultName': 'Potato',
+  'flow.steps.chiefAgent.hint': 'Customize your chief agent operator',
+  'flow.steps.chiefAgent.hire': 'Hire this agent',
+  'flow.steps.chiefAgent.hireError': 'Failed to hire this agent, please try again',
+  'flow.steps.chiefAgent.namePlaceholder': 'Name your agent',
+  'flow.steps.chiefAgent.personas.blueprint.intro':
+    'I habitually think one step ahead and name the risks first.',
+  'flow.steps.chiefAgent.personas.breeze.intro':
+    'No fluff — straight to results. Reliable, just very casual about it.',
+  'flow.steps.chiefAgent.personas.buttercup.intro':
+    'Even the most ordinary day deserves to be taken seriously.',
+  'flow.steps.chiefAgent.personas.byte.intro':
+    'Clear logic is my baseline — even small talk stays sharp.',
+  'flow.steps.chiefAgent.personas.coco.intro':
+    'I can handle serious work — and make it a bit more fun along the way.',
+  'flow.steps.chiefAgent.personas.dispatch.intro':
+    'Anything you hand me, I follow through and keep you posted.',
+  'flow.steps.chiefAgent.personas.flex.intro':
+    "Whatever the goal, I'll push through it with you in one go.",
+  'flow.steps.chiefAgent.personas.hexley.intro':
+    'However complex the problem, I can give it a touch of stage magic.',
+  'flow.steps.chiefAgent.personas.kernel.intro':
+    'I like drilling into things all the way down — no detail escapes.',
+  'flow.steps.chiefAgent.personas.latte.intro':
+    "Take it slow — that's how things come out just right.",
+  'flow.steps.chiefAgent.personas.lobe.intro':
+    "Whatever the task, I'm happy to start from scratch with you.",
+  'flow.steps.chiefAgent.personas.maestro.intro':
+    'Whatever lands on my desk, I want to give it grace and rhythm.',
+  'flow.steps.chiefAgent.personas.moss.intro':
+    "Even urgent things don't rush me — I get them done right, steadily.",
+  'flow.steps.chiefAgent.personas.riot.intro':
+    "Whatever you want to say, I'll help you say it with more force.",
+  'flow.steps.chiefAgent.personas.shutter.intro':
+    'I notice the details others miss — usually first.',
+  'flow.steps.chiefAgent.personas.sienna.intro':
+    'I love turning any idea into something vivid and story-like.',
+  'flow.steps.chiefAgent.title': 'Meet your Chief Agent',
+  'flow.steps.connectApps.apps.github.description':
+    'We analyze your repos and contributions to understand your tech stack, skills, and work style',
+  'flow.steps.connectApps.apps.gmail.description':
+    'We read your emails to understand your communication style, key relationships, and recurring interests',
+  'flow.steps.connectApps.apps.googleCalendar.description':
+    'We scan your events and schedule to understand your priorities, routines, and time habits',
+  'flow.steps.connectApps.apps.notion.description':
+    'We explore your notes and pages to understand how you think, organize ideas, and manage projects',
+  'flow.steps.connectApps.apps.twitter.description':
+    'We review your posts and activity to understand your opinions, passions, and social connections',
+  'flow.steps.connectApps.autoConnectCountdown': 'Connect in {{countdown}}s',
+  'flow.steps.connectApps.connect': 'Connect',
+  'flow.steps.connectApps.connected': 'Connected',
+  'flow.steps.connectApps.description': 'Add a few apps to help shape a more personal experience.',
+  'flow.steps.connectApps.gmailPermissionModal.continueAuthorization': 'Continue authorization',
+  'flow.steps.connectApps.gmailPermissionModal.description':
+    'Without Gmail read permission, your assistant cannot learn about you from your inbox.',
+  'flow.steps.connectApps.gmailPermissionModal.hint':
+    'This does not affect the rest of onboarding. You can skip for now and continue.',
+  'flow.steps.connectApps.gmailPermissionModal.skipAndContinue': 'Skip and continue',
+  'flow.steps.connectApps.gmailPermissionModal.title': 'More permission needed',
+  'flow.steps.connectApps.title': 'Begin the shape of you',
+  'flow.steps.learnYourWorld.analysisFailed':
+    'We could not finish analyzing your connected sources.',
+  'flow.steps.learnYourWorld.description': 'Building your user profile',
+  'flow.steps.learnYourWorld.factsTitle': 'What we found',
+  'flow.steps.learnYourWorld.progress.build': 'Building a user profile based on what we learn.',
+  'flow.steps.learnYourWorld.progress.buildEta': 'about 20–30s',
+  'flow.steps.learnYourWorld.progress.explore': 'Exploring more signals to understand you better.',
+  'flow.steps.learnYourWorld.progress.exploreEta': 'about 20–30s',
+  'flow.steps.learnYourWorld.progress.review': 'Reviewing your connected information.',
+  'flow.steps.learnYourWorld.retry': 'Retry',
+  'flow.steps.learnYourWorld.sectionHint':
+    'Analyze your connected data to understand what matters to you…',
+  'flow.steps.learnYourWorld.skipAhead': 'Skip ahead',
+  'flow.steps.learnYourWorld.skipNotificationHint':
+    "💡 You can skip this step for now — we'll notify you when your profile is ready.",
+  'flow.steps.learnYourWorld.title': 'Learn your world',
+  'flow.steps.messenger.connect': 'Connect',
+  'flow.steps.messenger.connected': 'Connected',
+  'flow.steps.messenger.localAgents.download': 'Download',
+  'flow.steps.messenger.localAgents.note':
+    "To link local agents, you'll need to download the desktop app first.",
+  'flow.steps.messenger.localAgents.subtitle':
+    "Link tools like Claude Code, Codex, and I'll help keep them all in line.",
+  'flow.steps.messenger.localAgents.title': 'Got Other Agents Working for You?',
+  'flow.steps.messenger.platforms.discord': 'Discord',
+  'flow.steps.messenger.platforms.slack': 'Slack',
+  'flow.steps.messenger.platforms.telegram': 'Telegram',
+  'flow.steps.messenger.quote': 'Connect a messaging app so I can reach you',
+  'flow.steps.messenger.quoteHighlight': 'wherever you already are.',
+  'flow.steps.messenger.title': 'Stay connected',
+  'flow.steps.profile.empty': 'Your profile is still being prepared.',
+  'flow.steps.profile.expandIdentity': 'Expand profile',
+  'flow.steps.profile.identity': 'Identity',
+  'flow.steps.profile.supplementModal.aboutYou': 'About you',
+  'flow.steps.profile.supplementModal.description':
+    'Add extra context or links to help AI understand you better. You can change these later.',
+  'flow.steps.profile.supplementModal.placeholder':
+    'Describe yourself, your interests, work, or profile link...',
+  'flow.steps.profile.supplementModal.submit': 'Refine',
+  'flow.steps.profile.supplementModal.submitError': 'Could not save your note. Please try again.',
+  'flow.steps.profile.supplementModal.title': 'Tell us more about yourself',
+  'flow.steps.profile.tagline': 'Tagline',
+  'flow.steps.profile.tellUsMore': 'Tell us more about you',
+  'flow.steps.profile.title': 'Your profile',
+  'flow.steps.starterTasks.addTasks_one': 'Add {{count}} task',
+  'flow.steps.starterTasks.addTasks_other': 'Add {{count}} tasks',
+  'flow.steps.starterTasks.createError': 'Could not add these tasks. Please try again.',
+  'flow.steps.starterTasks.play': 'Play',
+  'flow.steps.starterTasks.quote': "I'll suggest automations that might ",
+  'flow.steps.starterTasks.quoteHighlight': 'save you time.',
+  'flow.steps.starterTasks.sectionLabel': 'Suggested starter tasks',
+  'flow.steps.starterTasks.subline':
+    'Assign clear tasks to your CAO, then track its progress as it completes each one.',
+  'flow.steps.starterTasks.title': 'See exactly how we get things done.',
   'interests.area.business': 'Business & Strategy',
   'interests.area.coding': 'Programming & Development',
   'interests.area.creator': 'Creator Economy',
@@ -179,107 +294,4 @@ export default {
   'username.title': 'By the way, what should I call you?',
   'username.title2': 'Let’s get to know each other first!',
   'username.title3': 'That way, we can chat more naturally from now on~',
-  'flow.footer.continue': 'Continue',
-  'flow.footer.hint': '💡 You can edit this later',
-  'flow.skip': 'Skip',
-  'flow.steps.chiefAgent.avatarUpload': 'Upload your own avatar',
-  'flow.steps.chiefAgent.birthday': 'Born {{date}}',
-  'flow.steps.chiefAgent.defaultName': 'Potato',
-  'flow.steps.chiefAgent.hint': 'Customize your chief agent operator',
-  'flow.steps.chiefAgent.hire': 'Hire this agent',
-  'flow.steps.chiefAgent.hireError': 'Failed to hire this agent, please try again',
-  'flow.steps.chiefAgent.namePlaceholder': 'Name your agent',
-  'flow.steps.chiefAgent.personas.blueprint.intro':
-    'I habitually think one step ahead and name the risks first.',
-  'flow.steps.chiefAgent.personas.breeze.intro':
-    'No fluff — straight to results. Reliable, just very casual about it.',
-  'flow.steps.chiefAgent.personas.buttercup.intro':
-    'Even the most ordinary day deserves to be taken seriously.',
-  'flow.steps.chiefAgent.personas.byte.intro':
-    'Clear logic is my baseline — even small talk stays sharp.',
-  'flow.steps.chiefAgent.personas.coco.intro':
-    'I can handle serious work — and make it a bit more fun along the way.',
-  'flow.steps.chiefAgent.personas.dispatch.intro':
-    'Anything you hand me, I follow through and keep you posted.',
-  'flow.steps.chiefAgent.personas.flex.intro':
-    "Whatever the goal, I'll push through it with you in one go.",
-  'flow.steps.chiefAgent.personas.hexley.intro':
-    'However complex the problem, I can give it a touch of stage magic.',
-  'flow.steps.chiefAgent.personas.kernel.intro':
-    'I like drilling into things all the way down — no detail escapes.',
-  'flow.steps.chiefAgent.personas.latte.intro':
-    "Take it slow — that's how things come out just right.",
-  'flow.steps.chiefAgent.personas.lobe.intro':
-    "Whatever the task, I'm happy to start from scratch with you.",
-  'flow.steps.chiefAgent.personas.maestro.intro':
-    'Whatever lands on my desk, I want to give it grace and rhythm.',
-  'flow.steps.chiefAgent.personas.moss.intro':
-    "Even urgent things don't rush me — I get them done right, steadily.",
-  'flow.steps.chiefAgent.personas.riot.intro':
-    "Whatever you want to say, I'll help you say it with more force.",
-  'flow.steps.chiefAgent.personas.shutter.intro':
-    'I notice the details others miss — usually first.',
-  'flow.steps.chiefAgent.personas.sienna.intro':
-    'I love turning any idea into something vivid and story-like.',
-  'flow.steps.chiefAgent.title': 'Meet your Chief Agent',
-  'flow.steps.connectApps.apps.github.description':
-    'We analyze your repos and contributions to understand your tech stack, skills, and work style',
-  'flow.steps.connectApps.apps.gmail.description':
-    'We read your emails to understand your communication style, key relationships, and recurring interests',
-  'flow.steps.connectApps.apps.googleCalendar.description':
-    'We scan your events and schedule to understand your priorities, routines, and time habits',
-  'flow.steps.connectApps.apps.notion.description':
-    'We explore your notes and pages to understand how you think, organize ideas, and manage projects',
-  'flow.steps.connectApps.apps.twitter.description':
-    'We review your posts and activity to understand your opinions, passions, and social connections',
-  'flow.steps.connectApps.description': 'Add a few apps to help shape a more personal experience.',
-  'flow.steps.connectApps.title': 'Begin the shape of you',
-  'flow.steps.learnYourWorld.analysisFailed':
-    'We could not finish analyzing your connected sources.',
-  'flow.steps.learnYourWorld.description': 'Building your user profile',
-  'flow.steps.learnYourWorld.progress.build': 'Building a user profile based on what we learn.',
-  'flow.steps.learnYourWorld.progress.explore': 'Exploring more signals to understand you better.',
-  'flow.steps.learnYourWorld.progress.review': 'Reviewing your connected information.',
-  'flow.steps.learnYourWorld.retry': 'Retry',
-  'flow.steps.learnYourWorld.sectionHint':
-    'Analyze your connected data to understand what matters to you…',
-  'flow.steps.learnYourWorld.skipAhead': 'Skip ahead',
-  'flow.steps.learnYourWorld.title': 'Learn your world',
-  'flow.steps.messenger.connect': 'Connect',
-  'flow.steps.messenger.connected': 'Connected',
-  'flow.steps.messenger.localAgents.download': 'Download',
-  'flow.steps.messenger.localAgents.note':
-    "To link local agents, you'll need to download the desktop app first.",
-  'flow.steps.messenger.localAgents.subtitle':
-    "Link tools like Claude Code, Codex, and I'll help keep them all in line.",
-  'flow.steps.messenger.localAgents.title': 'Got Other Agents Working for You?',
-  'flow.steps.messenger.platforms.discord': 'Discord',
-  'flow.steps.messenger.platforms.slack': 'Slack',
-  'flow.steps.messenger.platforms.telegram': 'Telegram',
-  'flow.steps.messenger.quote': 'Connect a messaging app so I can reach you',
-  'flow.steps.messenger.quoteHighlight': 'wherever you already are.',
-  'flow.steps.messenger.title': 'Stay connected',
-  'flow.steps.profile.empty': 'Your profile is still being prepared.',
-  'flow.steps.profile.identity': 'Identity',
-  'flow.steps.profile.supplementModal.aboutYou': 'About you',
-  'flow.steps.profile.supplementModal.description':
-    'Add extra context or links to help AI understand you better. You can change these later.',
-  'flow.steps.profile.supplementModal.placeholder':
-    'Describe yourself, your interests, work, or profile link...',
-  'flow.steps.profile.supplementModal.submit': 'Refine',
-  'flow.steps.profile.supplementModal.submitError': 'Could not save your note. Please try again.',
-  'flow.steps.profile.supplementModal.title': 'Tell us more about yourself',
-  'flow.steps.profile.tagline': 'Tagline',
-  'flow.steps.profile.tellUsMore': 'Tell us more about you',
-  'flow.steps.profile.title': 'Your profile',
-  'flow.steps.starterTasks.addTasks_one': 'Add {{count}} task',
-  'flow.steps.starterTasks.addTasks_other': 'Add {{count}} tasks',
-  'flow.steps.starterTasks.createError': 'Could not add these tasks. Please try again.',
-  'flow.steps.starterTasks.play': 'Play',
-  'flow.steps.starterTasks.quote': "I'll suggest automations that might ",
-  'flow.steps.starterTasks.quoteHighlight': 'save you time.',
-  'flow.steps.starterTasks.sectionLabel': 'Suggested starter tasks',
-  'flow.steps.starterTasks.subline':
-    'Assign clear tasks to your CAO, then track its progress as it completes each one.',
-  'flow.steps.starterTasks.title': 'See exactly how we get things done.',
 };

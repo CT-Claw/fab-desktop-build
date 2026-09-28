@@ -1,4 +1,6 @@
-import { getEmailSupportHtml, getEmailSupportText } from '@/libs/email/support';
+const BRAND_NAME = '驰拓 AI 助手';
+const BRAND_LOGO_URL = 'https://fab.gdibao.com/images/brand/chituo-ai-logo.png';
+const SUPPORT_EMAIL = 'wodekefu@gmail.com';
 
 /**
  * Email verification template
@@ -15,17 +17,17 @@ export const getVerificationEmailTemplate = (params: {
   const expiresInHours = expiresInSeconds / 3600;
   const expirationText =
     expiresInHours >= 1
-      ? `${expiresInHours} hour${expiresInHours > 1 ? 's' : ''}`
-      : `${expiresInSeconds / 60} minutes`;
+      ? `${expiresInHours} 小时`
+      : `${expiresInSeconds / 60} 分钟`;
 
   return {
     html: `
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify your email</title>
+  <title>验证邮箱 - ${BRAND_NAME}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f5; color: #1a1a1a;">
   <!-- Container -->
@@ -34,8 +36,8 @@ export const getVerificationEmailTemplate = (params: {
     <!-- Logo -->
     <div style="text-align: center; margin-bottom: 32px;">
       <div style="display: inline-flex; align-items: center; justify-content: center; background-color: #ffffff; border-radius: 12px; padding: 8px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-        <span style="font-size: 24px; line-height: 1; margin-right: 10px;">🤯</span>
-        <span style="font-size: 18px; font-weight: 700; color: #000000; letter-spacing: -0.5px;">LobeHub</span>
+        <img src="${BRAND_LOGO_URL}" alt="${BRAND_NAME}" width="32" height="32" style="display: block; margin-right: 10px; border-radius: 8px;">
+        <span style="font-size: 18px; font-weight: 700; color: #000000; letter-spacing: -0.5px;">${BRAND_NAME}</span>
       </div>
     </div>
 
@@ -45,38 +47,38 @@ export const getVerificationEmailTemplate = (params: {
       <!-- Header -->
       <div style="text-align: center; margin-bottom: 32px;">
         <h1 style="color: #111827; font-size: 24px; font-weight: 700; margin: 0 0 12px 0; letter-spacing: -0.5px;">
-          Verify your email address
+          验证你的邮箱
         </h1>
         <p style="color: #6b7280; font-size: 16px; margin: 0;">
-          Let's get you signed in.
+          完成邮箱验证后即可登录${BRAND_NAME}。
         </p>
       </div>
 
       <!-- Content -->
       <div style="color: #374151; font-size: 16px; line-height: 1.6;">
-        ${userName ? `<p style="margin: 0 0 16px 0;">Hi <strong>${userName}</strong>,</p>` : ''}
+        ${userName ? `<p style="margin: 0 0 16px 0;">你好，<strong>${userName}</strong>：</p>` : ''}
         
         <p style="margin: 0 0 24px 0;">
-          Thanks for creating an account with LobeHub. To access your account, please verify your email address by clicking the button below.
+          感谢你注册${BRAND_NAME}。请点击下方按钮验证邮箱，完成后即可进入你的账号。
         </p>
 
         <!-- Button -->
         <div style="text-align: center; margin: 36px 0;">
           <a href="${url}" target="_blank"
              style="display: inline-block; background-color: #000000; color: #ffffff; text-decoration: none; padding: 16px 36px; border-radius: 14px; font-weight: 600; font-size: 16px; transition: transform 0.1s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            Verify Email Address
+            验证邮箱
           </a>
         </div>
 
         <!-- Expiration Note -->
         <div style="background-color: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid #f3f4f6;">
           <p style="color: #6b7280; font-size: 14px; margin: 0; text-align: center;">
-            ⏰ This link will expire in <strong>${expirationText}</strong>.
+            ⏰ 此链接将在 <strong>${expirationText}</strong> 后失效。
           </p>
         </div>
         
         <p style="color: #6b7280; font-size: 15px; margin: 0 0 8px 0;">
-          If you didn't create an account, you can safely ignore this email.
+          如果你没有注册${BRAND_NAME}，请忽略此邮件。
         </p>
       </div>
 
@@ -86,7 +88,7 @@ export const getVerificationEmailTemplate = (params: {
       <!-- Fallback Link -->
       <div style="text-align: center;">
         <p style="color: #9ca3af; font-size: 13px; margin: 0 0 8px 0;">
-          Button not working? Copy and paste this link into your browser:
+          如果按钮无法打开，请复制以下链接到浏览器中访问：
         </p>
         <a href="${url}" style="color: #2563eb; font-size: 13px; text-decoration: none; word-break: break-all; display: block; line-height: 1.4;">
           ${url}
@@ -97,17 +99,17 @@ export const getVerificationEmailTemplate = (params: {
     <!-- Footer -->
     <div style="text-align: center; margin-top: 32px;">
       <p style="font-size: 13px; margin: 0 0 8px 0;">
-        ${getEmailSupportHtml()}
+        <a href="mailto:${SUPPORT_EMAIL}" style="color: #6b7280; text-decoration: underline;">联系客服</a>
       </p>
       <p style="color: #a1a1aa; font-size: 13px; margin: 0;">
-        © 2026 LobeHub. All rights reserved.
+        © 2026 无锡市驰拓信息科技有限公司
       </p>
     </div>
   </div>
 </body>
 </html>
     `,
-    subject: 'Verify Your Email - LobeHub',
-    text: `Please verify your email by clicking this link: ${url}\n\nThis link will expire in ${expirationText}.\n\n${getEmailSupportText()}`,
+    subject: `验证你的邮箱 - ${BRAND_NAME}`,
+    text: `请点击此链接验证你的邮箱：${url}\n\n此链接将在 ${expirationText} 后失效。\n\n联系客服：${SUPPORT_EMAIL}`,
   };
 };

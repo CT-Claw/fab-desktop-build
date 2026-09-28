@@ -3,19 +3,12 @@
 import { createModal } from '@lobehub/ui/base-ui';
 import { t } from 'i18next';
 
-import { isDesktop } from '@/const/version';
-import { MarketAuthProvider } from '@/layout/AuthProvider/MarketAuth';
+import AgentCapabilityStore from '@/features/LocalMarket/AgentCapabilityStore';
 
-import { SkillStoreContent } from './SkillStoreContent';
-
-export const createSkillStoreModal = () =>
+export const createSkillStoreModal = (agentId?: string) =>
   createModal({
-    content: (
-      <MarketAuthProvider isDesktop={isDesktop}>
-        <SkillStoreContent />
-      </MarketAuthProvider>
-    ),
+    content: <AgentCapabilityStore agentId={agentId} />,
     footer: null,
     title: t('skillStore.title', { ns: 'setting' }),
-    width: 'min(80%, 800px)',
+    width: 'min(92vw, 980px)',
   });

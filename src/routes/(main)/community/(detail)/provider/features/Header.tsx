@@ -1,11 +1,15 @@
 'use client';
 
-import { ProviderCombine } from '@lobehub/icons';
-import { ActionIcon, Flexbox, stopPropagation } from '@lobehub/ui';
+import { Github } from '@lobehub/icons';
+import { Flexbox, stopPropagation } from '@lobehub/ui';
+import { ActionIcon } from '@lobehub/ui/base-ui';
 import { cssVar, useResponsive } from 'antd-style';
 import { GlobeIcon } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import urlJoin from 'url-join';
+
+import { ProviderCombine } from '@/components/LobeIcons';
 
 import { useDetailContext } from './DetailProvider';
 
@@ -50,6 +54,17 @@ const Header = memo<{ mobile?: boolean }>(({ mobile: isMobile }) => {
             </a>
           )}
 
+          <a
+            rel="noreferrer"
+            target="_blank"
+            href={urlJoin(
+              'https://github.com/lobehub/lobe-chat-agents/tree/main/locales',
+              identifier as string,
+            )}
+            onClick={stopPropagation}
+          >
+            <ActionIcon fill={cssVar.colorTextDescription} icon={Github} />
+          </a>
         </Flexbox>
       </Flexbox>
 
@@ -61,7 +76,7 @@ const Header = memo<{ mobile?: boolean }>(({ mobile: isMobile }) => {
           color: cssVar.colorTextSecondary,
         }}
       >
-        {t(`${identifier}.description`, { defaultValue: description })}
+        {description && t(`${identifier}.description`, { defaultValue: description })}
       </Flexbox>
     </Flexbox>
   );

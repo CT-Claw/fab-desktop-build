@@ -17,6 +17,12 @@ export interface StalePluginCleanupInput {
    */
   isAccessResolved: boolean;
   /**
+   * Installed agent skills are loaded independently from connectors. Until
+   * that query resolves, a valid local skill is indistinguishable from a stale
+   * identifier and must not be pruned.
+   */
+  isAgentSkillsInit: boolean;
+  /**
    * Connector identifiers are absent from `validIdentifiers` until
    * `fetchConnectors()` resolves, so pruning before that would mark enabled
    * connectors as stale.
@@ -44,11 +50,13 @@ export const resolveStalePluginCleanup = ({
   canEditContent,
   canEditResource,
   isAccessResolved,
+  isAgentSkillsInit,
   isConnectorsInit,
   plugins,
   validIdentifiers,
 }: StalePluginCleanupInput): AgentPluginEntry[] | null => {
   if (!canEditContent || !isAccessResolved || !canEditResource) return null;
+  if (!isAgentSkillsInit) return null;
   if (!isConnectorsInit) return null;
   if (validIdentifiers.size === 0) return null;
 

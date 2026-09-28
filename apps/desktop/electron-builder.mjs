@@ -6,11 +6,13 @@ import { fileURLToPath } from 'node:url';
 
 import dotenv from 'dotenv';
 
+import { resolveAuvBinaryForTarget } from './auv-binary.mjs';
 import {
   copyExternalRuntimeModulesToSource,
   getExternalRuntimeModulesFilesConfig,
 } from './external-runtime-deps.config.mjs';
 import {
+  buildFirstPartyNativeAddons,
   copyNativeModulesToSource,
   getAsarUnpackPatterns,
   getNativeModulesFilesConfig,
@@ -27,6 +29,46 @@ const packageJSON = JSON.parse(await fs.readFile(path.join(__dirname, 'package.j
 const channel = process.env.UPDATE_CHANNEL;
 const arch = os.arch();
 const hasAppleCertificate = Boolean(process.env.CSC_LINK);
+
+const macAppId = 'com.lobehub.lobehub-desktop';
+// Communication notifications need the restricted
+// `com.apple.developer.usernotifications.communication` entitlement, and
+// macOS refuses to launch an app carrying it without a provisioning profile
+// that authorizes it — so both must be applied together, and only when a
+// profile is provided.
+const macProvisioningProfile = process.env.MAC_PROVISIONING_PROFILE;
+const macTeamId = process.env.APPLE_TEAM_ID;
+const macCommunicationEntitlements =
+  macProvisioningProfile && macTeamId
+    ? path.join(__dirname, 'build', 'entitlements.mac.comm.generated.plist')
+    : undefined;
+
+if (macProvisioningProfile && !macTeamId) {
+  console.warn(
+    '⚠️ MAC_PROVISIONING_PROFILE is set but APPLE_TEAM_ID is missing — building without communication notification entitlements',
+  );
+}
+
+if (macCommunicationEntitlements) {
+  const baseEntitlements = await fs.readFile(
+    path.join(__dirname, 'build', 'entitlements.mac.plist'),
+    'utf8',
+  );
+  const communicationKeys = [
+    '    <key>com.apple.application-identifier</key>',
+    `    <string>${macTeamId}.${macAppId}</string>`,
+    '    <key>com.apple.developer.team-identifier</key>',
+    `    <string>${macTeamId}</string>`,
+    '    <key>com.apple.developer.usernotifications.communication</key>',
+    '    <true/>',
+    '  </dict>',
+  ].join('\n');
+  await fs.writeFile(
+    macCommunicationEntitlements,
+    baseEntitlements.replace('</dict>', communicationKeys),
+  );
+  console.info('🔔 Communication notification entitlements + provisioning profile enabled');
+}
 
 // 自定义更新服务器 URL (用于 stable 频道)
 const updateServerUrl = process.env.UPDATE_SERVER_URL;
@@ -99,20 +141,41 @@ const defaultConfig = {
    * BeforePack hook to resolve pnpm symlinks for native modules.
    * This ensures native modules are properly included in the asar archive.
    */
-  beforePack: async () => {
+  beforePack: async (context) => {
+    buildFirstPartyNativeAddons();
+
     await copyNativeModulesToSource();
     await copyExternalRuntimeModulesToSource();
+
+    // Keep the AUV daemon version locked to @auv-js/sdk. The CLI package
+    // resolves the platform-specific executable without running postinstall,
+    // then we stage that real file outside app.asar for child_process.spawn().
+    const {
+      binaryPath: auvSource,
+      executable: auvExecutable,
+      packageName: auvPackageName,
+    } = await resolveAuvBinaryForTarget(context.electronPlatformName, context.arch);
+    const auvBinDirectory = path.resolve(__dirname, 'resources/bin');
+    await Promise.all([
+      fs.rm(path.join(auvBinDirectory, 'auv'), { force: true }),
+      fs.rm(path.join(auvBinDirectory, 'auv.exe'), { force: true }),
+      fs.rm(path.join(auvBinDirectory, 'bin'), { force: true, recursive: true }),
+    ]);
+    const auvDestination = path.join(auvBinDirectory, auvExecutable);
+    await fs.mkdir(auvBinDirectory, { recursive: true });
+    await fs.copyFile(auvSource, auvDestination);
+    if (context.electronPlatformName !== 'win32') await fs.chmod(auvDestination, 0o755);
+    console.info(`Packaged target AUV runtime from ${auvPackageName}`);
 
     // agent-browser is no longer bundled in the installer — BinaryManager
     // lazily downloads it on first use into the per-user cache dir. See
     // apps/desktop/src/main/modules/binaries/agentBrowserBinaries.ts.
 
-    const cliSrc = path.resolve(__dirname, '../cli/dist/index.js');
     const cliDest = path.resolve(__dirname, 'resources/bin/lobe-cli.js');
     const cliPackageDest = path.resolve(__dirname, 'resources/cli-package.json');
 
-    // The public Mac build snapshot intentionally excludes the CLI source tree.
-    // It uses the already reviewed embedded runtime instead of widening disclosure.
+    // The public Mac snapshot excludes the standalone CLI source. It embeds the
+    // reviewed runtime produced from the same private release commit instead.
     if (process.env.CHITUO_PUBLIC_MAC_BUILD === '1') {
       await fs.access(cliDest);
       await fs.access(cliPackageDest);
@@ -120,11 +183,11 @@ const defaultConfig = {
     } else {
       console.info('📦 Building CLI for embedding...');
       execSync('npm run build:cli', { stdio: 'inherit', cwd: __dirname });
+      const cliSrc = path.resolve(__dirname, '../cli/dist/index.js');
       await fs.mkdir(path.dirname(cliDest), { recursive: true });
       await fs.copyFile(cliSrc, cliDest);
 
-      // Write a minimal package.json next to the CLI bundle so that
-      // createRequire('../package.json') resolves correctly in the packaged app.
+      // createRequire('../package.json') resolves beside the embedded bundle.
       const cliPkg = JSON.parse(
         await fs.readFile(path.resolve(__dirname, '../cli/package.json'), 'utf8'),
       );
@@ -176,7 +239,7 @@ const defaultConfig = {
     }
   },
   afterSign: verifyFontListSignature,
-  appId: 'com.lobehub.lobehub-desktop',
+  appId: macAppId,
   appImage: {
     artifactName: '${productName}-${version}.${ext}',
   },
@@ -223,6 +286,13 @@ const defaultConfig = {
     'dist/renderer/**/*',
     '!resources/locales',
     '!resources/dmg.png',
+    // NOTICE:
+    // AUV must execute from the external bin directory, so its ASAR copy is unnecessary.
+    // The resources glob otherwise duplicates the binary copied by extraResources below.
+    // Source: PR #19051 ASAR Size Gate; resources/bin is staged in beforePack above.
+    // Remove these exclusions only if AUV no longer ships through extraResources.
+    '!resources/bin/auv',
+    '!resources/bin/auv.exe',
     // Exclude all node_modules first
     '!node_modules',
     // Then explicitly include native modules using object form (handles pnpm symlinks)
@@ -238,9 +308,18 @@ const defaultConfig = {
     target: ['AppImage', 'snap', 'deb', 'rpm', 'tar.gz'],
   },
   mac: {
-    binaries: ['Contents/Resources/app.asar.unpacked/node_modules/font-list/libs/darwin/fontlist'],
+    binaries: [
+      'Contents/Resources/app.asar.unpacked/node_modules/font-list/libs/darwin/fontlist',
+      'Contents/Resources/bin/auv',
+    ],
     compression: 'maximum',
     entitlementsInherit: 'build/entitlements.mac.plist',
+    ...(macCommunicationEntitlements
+      ? {
+          entitlements: macCommunicationEntitlements,
+          provisioningProfile: macProvisioningProfile,
+        }
+      : {}),
     extendInfo: {
       CFBundleIconName: 'AppIcon',
       CFBundleURLTypes: [
@@ -259,6 +338,7 @@ const defaultConfig = {
       NSMicrophoneUsageDescription: "Application requests access to the device's microphone.",
       NSScreenCaptureUsageDescription:
         'Application requests access to record and analyze screen content for AI assistance.',
+      NSUserActivityTypes: ['INSendMessageIntent'],
     },
     gatekeeperAssess: false,
     hardenedRuntime: hasAppleCertificate,
@@ -299,6 +379,29 @@ const defaultConfig = {
   extraResources: [
     { from: 'resources/bin', to: 'bin' },
     { from: 'resources/cli-package.json', to: 'package.json' },
+    // Local Sandbox helper binaries. The sandbox spawns these by path, so they
+    // must be real files — not entries inside app.asar, and not something the
+    // user is expected to install separately.
+    //
+    // Shipped as a resource rather than by externalizing
+    // `@anthropic-ai/sandbox-runtime`: its JavaScript bundles into the main
+    // process perfectly well, and making it a production dependency instead
+    // drags four transitive packages into electron-builder's node_modules
+    // traversal, which pnpm's layout does not satisfy (`@pondwader/socks5-server
+    // not found`). Only the binaries need to exist on disk.
+    {
+      from: 'node_modules/@anthropic-ai/sandbox-runtime/vendor',
+      to: 'sandbox-runtime/vendor',
+    },
+    // Carried alongside the binaries so the staging directory stays keyed on the
+    // backend's real version. Without it the version lookup falls back to the
+    // binary's size — which still works, but would defeat the per-version
+    // isolation in exactly the case it exists for: an installed app being
+    // updated.
+    {
+      from: 'node_modules/@anthropic-ai/sandbox-runtime/package.json',
+      to: 'sandbox-runtime/package.json',
+    },
   ],
 
   win: {

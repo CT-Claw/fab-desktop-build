@@ -1,3 +1,5 @@
+import { sanitizeLinkUrl } from '@lobechat/utils';
+
 import { CHITUO_PUBLIC_LINKS } from '@/const/chituoLinks';
 
 export type AboutLinkId =
@@ -41,12 +43,8 @@ export const DEFAULT_ABOUT_LINKS: AboutLinksConfig = {
   ],
   information: [
     { id: 'downloads', label: '客户端下载', url: CHITUO_PUBLIC_LINKS.downloads },
-    { id: 'insights', label: '行业洞察', url: CHITUO_PUBLIC_LINKS.insights },
-    {
-      id: 'industryResources',
-      label: '行业资源',
-      url: CHITUO_PUBLIC_LINKS.industryResources,
-    },
+    { id: 'insights', label: '风险预警', url: CHITUO_PUBLIC_LINKS.insights },
+    { id: 'industryResources', label: '行业资源', url: CHITUO_PUBLIC_LINKS.industryResources },
   ],
   legal: [],
 };
@@ -75,28 +73,13 @@ const aboutLinkIds = new Set<AboutLinkId>([
   'privacy',
 ]);
 
-const legacyOrPlaceholderLinks = new Set([
-  'https://discord.gg',
-  'https://gdibao.com/blog',
-  'https://gdibao.com/privacy',
-  'https://gdibao.com/terms',
-  'https://github.com/CT-Claw',
-  'https://www.youtube.com/@ct-claw',
-  'https://x.com',
-]);
-
-const isUsableAboutUrl = (value: string) => {
-  if (!value || legacyOrPlaceholderLinks.has(value.replace(/\/$/, ''))) return false;
-  if (value.startsWith('mailto:')) return value.length > 'mailto:'.length;
-
+const isUpstreamProductUrl = (url: string) => {
   try {
-    const parsed = new URL(value);
-    const hostname = parsed.hostname.toLowerCase();
+    const hostname = new URL(url).hostname.toLowerCase();
     return (
-      ['http:', 'https:'].includes(parsed.protocol) &&
-      hostname !== 'chat.qingyouai.com' &&
-      hostname !== 'lobehub.com' &&
-      !hostname.endsWith('.lobehub.com')
+      hostname === 'chat.qingyouai.com' ||
+      hostname === 'lobehub.com' ||
+      hostname.endsWith('.lobehub.com')
     );
   } catch {
     return false;
@@ -119,9 +102,9 @@ const normalizeGroup = (value: unknown, defaults: AboutLinkItem[]): AboutLinkIte
     const fallback = defaultsById.get(id);
     const matched = items.find((item) => item.id === id);
     const label = normalizeText(matched?.label);
-    const url = normalizeText(matched?.url);
+    const url = sanitizeLinkUrl(matched?.url);
 
-    if (url && isUsableAboutUrl(url)) {
+    if (url && !isUpstreamProductUrl(url)) {
       return [{ id, label: label || fallback?.label || id, url }];
     }
     return fallback ? [fallback] : [];
@@ -144,28 +127,12 @@ export const normalizeAboutPageConfig = (value: unknown): AboutPageConfig => {
       ? (value as Partial<Record<keyof AboutPageConfig, unknown>>)
       : {};
   const changelogLabel = normalizeText(config.changelogLabel);
-  const changelogUrl = normalizeText(config.changelogUrl);
-  const logoLinkUrl = normalizeText(config.logoLinkUrl);
+  const changelogUrl = sanitizeLinkUrl(config.changelogUrl);
+  const logoLinkUrl = sanitizeLinkUrl(config.logoLinkUrl);
 
   const normalizePublicUrl = (url: string, fallback: string) => {
-    if (!url) return fallback;
-
-    try {
-      const parsed = new URL(url);
-      const hostname = parsed.hostname.toLowerCase();
-      if (!['http:', 'https:'].includes(parsed.protocol)) return fallback;
-      if (
-        hostname === 'gdibao.comchangelog' ||
-        hostname === 'chat.qingyouai.com' ||
-        hostname === 'lobehub.com' ||
-        hostname.endsWith('.lobehub.com')
-      ) {
-        return fallback;
-      }
-      return url;
-    } catch {
-      return fallback;
-    }
+    if (!url || url === 'https://gdibao.comchangelog' || isUpstreamProductUrl(url)) return fallback;
+    return url;
   };
 
   return {

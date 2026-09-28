@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Build version, for example 2.2.13-chituo.9'
+        description: 'Build version, for example 2.2.17-chituo.12'
         required: true
         type: string
 

@@ -4,6 +4,8 @@ import capabilities from '@/features/LocalAssistantMarket/capabilities.json';
 
 import { type LocalMarketItem } from './types';
 
+export const FAB_SANDBOX_TOOL_ID = 'lobe-cloud-sandbox';
+
 export const fabSkillItems: LocalMarketItem[] = fabSkillDefinitions.map((skill) => ({
   author: '驰拓 AI',
   category: 'FAB 工程技能',
@@ -21,8 +23,11 @@ export const localMcpItems: LocalMarketItem[] = [
     description: '连接已部署的半导体本地知识库，按权限返回原文片段、版本和证据定位。',
     id: 'fab-offline-knowledge',
     installable: true,
+    missing: ['需要在 Fab 本地连接器设置中核对当前用户权限'],
     name: 'Fab 本地知识库',
     source: 'fab',
+    sourceId: 'fab-offline-knowledge',
+    status: 'needs-config',
   },
   {
     author: '驰拓 AI',
@@ -30,8 +35,11 @@ export const localMcpItems: LocalMarketItem[] = [
     description: '通过 OnlyBoxes 本地隔离沙箱执行受限计算和文件处理，不连接生产现场。',
     id: 'fab-local-sandbox',
     installable: true,
+    missing: ['由 Fab 服务端原生 OnlyBoxes 配置提供，按当前用户隔离会话'],
     name: 'Fab 本地沙箱',
     source: 'fab',
+    sourceId: FAB_SANDBOX_TOOL_ID,
+    status: 'needs-config',
   },
 ];
 

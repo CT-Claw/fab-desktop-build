@@ -17,6 +17,15 @@ export const localRoleCategories = [...new Set(localRoles.map((role) => role.rol
 export const localBrands = [
   ...new Set(localRoles.flatMap((role) => (role.brand ? [role.brand] : []))),
 ].sort();
+const fallbackAvatars = ['🧠', '🧪', '📐', '⚙️', '🔧', '📊', '🛰️', '🧭'];
+export const resolveLocalMirrorAvatar = (avatar: string | undefined, iconKey: string) => {
+  if (avatar && !/^https?:\/\//i.test(avatar)) return avatar;
+  const hash = [...iconKey].reduce(
+    (total, character) => total + (character.codePointAt(0) || 0),
+    0,
+  );
+  return fallbackAvatars[hash % fallbackAvatars.length];
+};
 const roleByIdentifier = new Map(localRoles.map((role) => [role.identifier, role]));
 
 export const filterLocalAssistants = (query = '', domain = '', category = '', brand = '') => {
@@ -47,7 +56,7 @@ export const isLocalMarketOverviewPath = (pathname: string) => /\/community\/?$/
 export type LocalMarketKind = 'skills' | 'mcp' | 'models' | 'providers';
 
 export const localMarketKindFromPath = (pathname: string): LocalMarketKind | undefined => {
-  const match = pathname.match(/\/community\/(skill|mcp|model|provider)\/?$/);
+  const match = pathname.match(/\/community\/(skill|mcp|model|provider)(?:\/[^/]+)?\/?$/);
   if (!match) return undefined;
 
   return {

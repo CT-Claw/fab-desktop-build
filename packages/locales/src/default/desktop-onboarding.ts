@@ -1,9 +1,6 @@
 export default {
   'authResult.failed.desc': 'Please try again or switch to a different sign-in method',
   'authResult.failed.title': 'Authorization Failed',
-  'authResult.success.desc':
-    'Please click the Start button below to continue using Chituo AI Assistant Desktop',
-  'authResult.success.title': 'Authorization Successful',
 
   'back': 'Back',
   'navigation.next': 'Continue',
@@ -64,11 +61,11 @@ export default {
   'screen4.privacy.items.3': 'All processing stays local',
   'screen4.privacy.title': 'Privacy Mode',
   'screen4.share.description':
-    'Share anonymized usage data to help us improve Chituo AI Assistant. This helps us understand how Agents are used and make them better.',
+    'Share anonymized usage data to help us improve LobeHub. This helps us understand how Agents are used and make them better.',
   'screen4.share.items.1': 'Performance metrics',
   'screen4.share.items.2': 'Model usage patterns',
   'screen4.share.items.3': 'Feature interactions',
-  'screen4.share.title': 'Help Improve Chituo AI Assistant',
+  'screen4.share.title': 'Help Improve LobeHub',
   'screen4.title': 'How would you like to share data?',
   'screen4.title2': 'Your choice helps us improve',
   'screen4.title3': 'You can change this anytime in settings',
@@ -76,7 +73,8 @@ export default {
   'screen5.actions.cancel': 'Cancel',
   'screen5.actions.connectToServer': 'Connect to Server',
   'screen5.actions.connecting': 'Connecting...',
-  'screen5.actions.signInCloud': 'Sign in to Chituo AI Assistant Service',
+  'screen5.actions.done': 'Done',
+  'screen5.actions.signInCloud': 'Sign in to LobeHub Cloud',
   'screen5.actions.signOut': 'Sign out',
   'screen5.actions.signingIn': 'Signing in...',
   'screen5.actions.signingOut': 'Signing out...',
@@ -93,12 +91,18 @@ export default {
   'screen5.errors.timedOut': 'Authorization timed out, please try again',
   'screen5.legacyLocalDb.link': 'Migrate legacy local database',
   'screen5.methods.cloud.description':
-    'Sign in with your Chituo AI Assistant Service account to sync everything seamlessly',
-  'screen5.methods.cloud.name': 'Chituo AI Assistant Service',
-  'screen5.methods.selfhost.description': 'Connect to your own Chituo AI Assistant server instance',
+    'Sign in with your LobeHub Cloud account to sync everything seamlessly',
+  'screen5.methods.cloud.name': 'LobeHub Cloud',
+  'screen5.methods.selfhost.description': 'Connect to your own LobeHub server instance',
   'screen5.methods.selfhost.name': 'Self-hosted Instance',
   'screen5.navigation.next': 'Get Started',
   'screen5.selfhost.endpointPlaceholder': 'Enter your server URL (e.g., https://your-server.com)',
+  'screen5.status.cloud.title': 'Connected to LobeHub Cloud',
+  'screen5.status.description':
+    'Agents, Groups, settings, and Context are syncing across all your devices.',
+  'screen5.status.selfhost.description':
+    'Syncing Agents, Groups, settings, and Context with {{url}}.',
+  'screen5.status.selfhost.title': 'Connected to your own server',
   'screen5.title': 'Sign in to sync across devices',
   'screen5.title2': 'Keep your data synchronized everywhere',
   'screen5.title3': 'Your data stays in your control',

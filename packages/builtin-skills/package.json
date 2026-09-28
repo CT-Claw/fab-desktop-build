@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./fab-engineering": "./src/fab-engineering/index.ts"
+    "./fab-engineering": "./src/fab-engineering/index.ts",
+    "./manifests": "./src/manifests.ts"
   },
   "main": "./src/index.ts",
   "dependencies": {

@@ -1,8 +1,8 @@
 'use client';
 
 import { SOCIAL_URL } from '@lobechat/business-const';
-import { Flexbox, Icon, Tag } from '@lobehub/ui';
-import { Tabs } from '@lobehub/ui/base-ui';
+import { Flexbox, Icon } from '@lobehub/ui';
+import { Tabs, Tag } from '@lobehub/ui/base-ui';
 import { createStaticStyles } from 'antd-style';
 import {
   BookOpenIcon,
@@ -119,10 +119,12 @@ const Nav = memo<NavProps>(({ mobile, setActiveTab, activeTab = AssistantNavKey.
     <Flexbox horizontal align={'center'} className={styles.nav} justify={'space-between'}>
       <div className={styles.tabsWrapper}>{nav}</div>
       <Flexbox horizontal flex="none" gap={12} style={{ marginInlineStart: 12 }}>
-        <a className={styles.link} href={SOCIAL_URL.discord} rel="noreferrer" target="_blank">
-          {t('mcp.details.nav.needHelp')}
-          <Icon icon={SquareArrowOutUpRight} size={12} />
-        </a>
+        {SOCIAL_URL.discord && (
+          <a className={styles.link} href={SOCIAL_URL.discord} rel="noreferrer" target="_blank">
+            {t('mcp.details.nav.needHelp')}
+            <Icon icon={SquareArrowOutUpRight} size={12} />
+          </a>
+        )}
       </Flexbox>
     </Flexbox>
   );

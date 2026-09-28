@@ -1,8 +1,8 @@
 'use client';
 
 import { SOCIAL_URL } from '@lobechat/business-const';
-import { Flexbox, Icon, Tag } from '@lobehub/ui';
-import { Tabs, type TabsItem } from '@lobehub/ui/base-ui';
+import { Flexbox, Icon } from '@lobehub/ui';
+import { Tabs, type TabsItem, Tag } from '@lobehub/ui/base-ui';
 import { createStaticStyles } from 'antd-style';
 import {
   BookOpenIcon,
@@ -188,9 +188,11 @@ const Nav = memo<NavProps>(
             gap={12}
             style={{ marginInlineStart: 12, whiteSpace: 'nowrap' }}
           >
-            <a className={styles.link} href={SOCIAL_URL.discord} rel="noreferrer" target="_blank">
-              {t('mcp.details.nav.needHelp')}
-            </a>
+            {SOCIAL_URL.discord && (
+              <a className={styles.link} href={SOCIAL_URL.discord} rel="noreferrer" target="_blank">
+                {t('mcp.details.nav.needHelp')}
+              </a>
+            )}
             {github?.url && (
               <>
                 <a className={styles.link} href={github.url} rel="noreferrer" target="_blank">

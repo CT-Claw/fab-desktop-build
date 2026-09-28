@@ -22,6 +22,7 @@ export const {
   signOut,
   signUp,
   unlinkAccount,
+  verifyEmail,
   useSession,
 } = createAuthClient({
   fetchOptions: {

@@ -1,13 +1,14 @@
 import type { HeteroSessionDigest } from '@lobechat/types';
 import { ClaudeCode, Codex } from '@lobehub/icons';
-import { Flexbox, Icon, NeuralNetworkLoading, Tag, Text, Tooltip } from '@lobehub/ui';
-import { Button } from '@lobehub/ui/base-ui';
-import { Checkbox } from 'antd';
+import { Flexbox, Icon, Tooltip } from '@lobehub/ui';
+import { Button, Checkbox, Tag, Text } from '@lobehub/ui/base-ui';
 import { createStaticStyles, cx } from 'antd-style';
 import dayjs from 'dayjs';
 import { Check, RotateCcw, X } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import NeuralNetworkLoading from '@/components/NeuralNetworkLoading';
 
 import { baseName, fmtTokens, type ImportRowState, selectable, type SessionStatus } from './utils';
 

@@ -39,6 +39,17 @@ class AgentSkillService {
     return lambdaClient.agentSkills.importFromMarket.mutate({ identifier });
   }
 
+  async importFromLocalMarket(
+    identifier: string,
+    acceptance?: { permissions?: string[]; warnings?: string[] },
+  ): Promise<SkillImportResult | undefined> {
+    return lambdaClient.agentSkills.importFromLocalMarket.mutate({
+      acceptedPermissions: acceptance?.permissions || [],
+      acceptedWarnings: acceptance?.warnings || [],
+      identifier,
+    });
+  }
+
   // ===== Query =====
 
   async getById(id: string): Promise<SkillItem | undefined> {

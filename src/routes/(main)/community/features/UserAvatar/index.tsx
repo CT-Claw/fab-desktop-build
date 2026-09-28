@@ -1,7 +1,9 @@
 'use client';
 
-import { Avatar, Skeleton } from '@lobehub/ui';
-import { memo, useCallback } from 'react';
+import { Avatar, Button, Skeleton } from '@lobehub/ui/base-ui';
+import { UserCircleIcon } from 'lucide-react';
+import { memo, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useCommunityWorkspaceProfile } from '@/business/client/hooks/useCommunityWorkspaceProfile';
 import { useWorkspaceAwareNavigate } from '@/features/Workspace/useWorkspaceAwareNavigate';
@@ -40,13 +42,15 @@ const checkNeedsProfileSetup = (
 };
 
 const UserAvatar = memo<UserAvatarProps>(({ avatarOverride }) => {
+  const { t } = useTranslation('discover');
   const navigate = useWorkspaceAwareNavigate();
+  const [loading, setLoading] = useState(false);
   const {
     avatarUrl: workspaceAvatarUrl,
     isWorkspaceScope,
     username: workspaceUsername,
   } = useCommunityWorkspaceProfile();
-  const { isAuthenticated, isLoading, getCurrentUserInfo } = useMarketAuth();
+  const { isAuthenticated, isLoading, getCurrentUserInfo, signIn } = useMarketAuth();
 
   const enableMarketTrustedClient = useServerConfigStore(
     serverConfigSelectors.enableMarketTrustedClient,
@@ -61,6 +65,19 @@ const UserAvatar = memo<UserAvatarProps>(({ avatarOverride }) => {
   // Check whether profile setup is needed
   const needsProfileSetup = checkNeedsProfileSetup(enableMarketTrustedClient, userProfile);
 
+  const handleSignIn = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Unified call to signIn, which shows a confirmation dialog first
+      // In trustedClient mode, confirmation opens the ProfileSetupModal
+      // In OIDC mode, confirmation triggers the OIDC flow
+      await signIn();
+    } catch {
+      // User cancelled or error occurred
+    }
+    setLoading(false);
+  }, [signIn]);
+
   const handleAvatarClick = useCallback(() => {
     const profileUserName = userProfile?.userName || userProfile?.namespace;
     const target = resolveCommunityUserAvatarTarget({
@@ -74,13 +91,25 @@ const UserAvatar = memo<UserAvatarProps>(({ avatarOverride }) => {
   }, [isWorkspaceScope, navigate, userProfile?.userName, userProfile?.namespace]);
 
   if (isLoading) {
-    return <Skeleton.Avatar active shape={'square'} size={28} style={{ borderRadius: 6 }} />;
+    return <Skeleton.Avatar shape={'square'} size={28} style={{ borderRadius: 6 }} />;
   }
 
   // If trustedClient is enabled, skip the "become a creator" button and show the avatar directly
   // Otherwise, show the login button when unauthenticated or profile setup is needed
   if (!enableMarketTrustedClient && (!isAuthenticated || needsProfileSetup)) {
-    return null;
+    return (
+      <Button
+        icon={UserCircleIcon}
+        loading={loading}
+        type="text"
+        style={{
+          height: 30,
+        }}
+        onClick={handleSignIn}
+      >
+        {t('user.login')}
+      </Button>
+    );
   }
 
   // Get avatar from user profile (fetched via SWR with caching)

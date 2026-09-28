@@ -167,12 +167,7 @@ export const loadDesktopBuildProfile = async (profilePath) => {
     profileError('DESKTOP_BUILD_PROFILE_INVALID');
   }
 
-  const publicMacOnly = process.env.CHITUO_PUBLIC_MAC_BUILD === '1';
-  const assetRequirements = publicMacOnly
-    ? { appPreview: requiredAssets.appPreview, macIcon: optionalAssets.macIcon }
-    : { ...requiredAssets, ...optionalAssets };
-
-  for (const [kind, extension] of Object.entries(assetRequirements)) {
+  for (const [kind, extension] of Object.entries({ ...requiredAssets, ...optionalAssets })) {
     if (kind in optionalAssets && parsed.assets[kind] === undefined) continue;
     const file = requireString(parsed.assets[kind], 'DESKTOP_BUILD_PROFILE_INVALID');
     const resolved = assertInside(
@@ -201,7 +196,11 @@ export const applyDesktopBuildProfile = (config, stagedProfile) => {
   if (!stagedProfile) return config;
 
   const { assets, profile } = stagedProfile;
-  const { CFBundleIconName: _repositoryIconName, ...macExtendInfo } = config.mac?.extendInfo ?? {};
+  const {
+    CFBundleIconName: _repositoryIconName,
+    CFBundleURLTypes: _repositoryUrlTypes,
+    ...macExtendInfo
+  } = config.mac?.extendInfo ?? {};
   return {
     ...config,
     appId: profile.applicationId,
@@ -222,16 +221,12 @@ export const applyDesktopBuildProfile = (config, stagedProfile) => {
     },
     nsis: {
       ...(config.nsis ?? {}),
-      ...(assets.nsisHeader
-        ? {
-            artifactName: profile.installerArtifactName,
-            installerHeader: assets.nsisHeader,
-            installerSidebar: assets.nsisSidebar,
-          }
-        : {}),
+      artifactName: profile.installerArtifactName,
+      installerHeader: assets.nsisHeader,
+      installerSidebar: assets.nsisSidebar,
       shortcutName: profile.shortcutName,
       uninstallDisplayName: profile.uninstallDisplayName,
-      ...(assets.nsisSidebar ? { uninstallerSidebar: assets.nsisSidebar } : {}),
+      uninstallerSidebar: assets.nsisSidebar,
     },
     linux: {
       ...(config.linux ?? {}),
@@ -259,7 +254,7 @@ export const applyDesktopBuildProfile = (config, stagedProfile) => {
     win: {
       ...(config.win ?? {}),
       executableName: profile.executableName,
-      ...(assets.windowsIcon ? { icon: assets.windowsIcon } : {}),
+      icon: assets.windowsIcon,
     },
   };
 };

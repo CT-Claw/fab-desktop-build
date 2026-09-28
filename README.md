@@ -12,7 +12,7 @@
 
 构建入口是 `.github/workflows/build-macos.yml`，仅支持手动触发。工作流使用标准 `macos-15` Apple Silicon runner 与 `macos-15-intel` Intel runner，分别产出对应架构的 DMG 和 ZIP，并上传带 SHA-256 清单的 Actions 工件。
 
-本地构建需要 Node.js 24.x、pnpm 10.33.0、可用的 macOS Electron 原生依赖环境；仓库不提供签名证书、公证凭据或生产环境变量。可运行：
+当前快照版本为 `2.2.17-chituo.12`。本地构建需要 Node.js 24.x、pnpm 12.4.1、可用的 macOS Electron 原生依赖环境；仓库不提供签名证书、公证凭据或生产环境变量。可运行：
 
 ```sh
 pnpm install

@@ -39,9 +39,6 @@ const HomePage = memo(() => {
     sort: McpSorts.Recommended,
   });
 
-  // Gate each section independently so a failure in one featured list surfaces a
-  // Retry there instead of leaving the whole page on a permanent skeleton
-  //
   return (
     <>
       <Title more={t('home.more')} moreLink={'/community/agent'}>
@@ -72,5 +69,7 @@ const HomePage = memo(() => {
     </>
   );
 });
+
+HomePage.displayName = 'CommunityHomePage';
 
 export default HomePage;

@@ -1,18 +1,18 @@
 'use client';
 
-import { type ComposioAppType, type LobehubSkillProviderType } from '@lobechat/const';
-import { COMPOSIO_APP_TYPES, LOBEHUB_SKILL_PROVIDERS } from '@lobechat/const';
-import { Avatar, Flexbox, Icon, Tag, Tooltip } from '@lobehub/ui';
+import type { ComposioAppType, LobehubSkillProviderType } from '@lobechat/const';
+import { resolveConnectorCatalogItem } from '@lobechat/const';
+import { Flexbox, Icon, Tooltip } from '@lobehub/ui';
+import { Avatar, Tag } from '@lobehub/ui/base-ui';
 import { McpIcon } from '@lobehub/ui/icons';
 import { createStaticStyles, cssVar } from 'antd-style';
 import isEqual from 'fast-deep-equal';
-import { AlertCircle, Loader2, Square, SquareCheckBig, X } from 'lucide-react';
+import { AlertCircle, Loader2, Square, SquareCheckBig, SquareMinus, X } from 'lucide-react';
 import React, { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import PluginAvatar from '@/components/Plugins/PluginAvatar';
 import { useIsDark } from '@/hooks/useIsDark';
-import { useDiscoverStore } from '@/store/discover';
 import { serverConfigSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useToolStore } from '@/store/tool';
 import {
@@ -53,6 +53,16 @@ const LobehubSkillIcon = memo<Pick<LobehubSkillProviderType, 'icon' | 'label'>>(
 const EMPTY_CONNECTORS: ReturnType<typeof connectorSelectors.connectorList> = [];
 const emptyConnectorList = () => EMPTY_CONNECTORS;
 
+const isUpstreamLobeAsset = (avatar: unknown) => {
+  if (typeof avatar !== 'string') return false;
+  try {
+    const hostname = new URL(avatar).hostname.toLocaleLowerCase();
+    return hostname === 'lobehub.com' || hostname.endsWith('.lobehub.com');
+  } catch {
+    return false;
+  }
+};
+
 const styles = createStaticStyles(({ css, cssVar }) => ({
   loadingIcon: css`
     flex-shrink: 0;
@@ -91,6 +101,14 @@ export interface PluginTagProps {
    */
   agentId?: string;
   disabled?: boolean;
+  /**
+   * Renders the `selectable` checkbox in the "some but not all" state (a minus
+   * box instead of a tick), the antd `indeterminate` / Gmail select-all
+   * convention. Only meaningful together with `selected`: the chip represents
+   * a container whose children are partially selected — e.g. an agent-share
+   * tool granted for some of its APIs but not all.
+   */
+  indeterminate?: boolean;
   onRemove?: (e: React.MouseEvent) => void;
   /** Fires when the checkbox/tag is toggled in `selectable` mode. */
   onSelect?: () => void;
@@ -136,6 +154,7 @@ const PluginTag = memo<PluginTagProps>(
     pluginId,
     onRemove,
     onSelect,
+    indeterminate = false,
     removable = true,
     selectable = false,
     selected = false,
@@ -194,9 +213,6 @@ const PluginTag = memo<PluginTagProps>(
     // Custom connector state
     const customConnectors = useToolStore(connectorSelectors.customConnectors, isEqual);
 
-    // Check if plugin is installed
-    const isInstalled = useToolStore(pluginSelectors.isPluginInstalled(identifier));
-
     // Try to find in local lists first (including Composio and LobehubSkill)
     const localMeta = useMemo(() => {
       // Agent-owned/mounted connector: resolve as installed even though it isn't
@@ -208,38 +224,31 @@ const PluginTag = memo<PluginTagProps>(
         : undefined;
       const agentInstalled = !!agentConn;
 
-      // Check if it's a Composio server type
-      if (isComposioEnabledInEnv) {
-        const composioType = COMPOSIO_APP_TYPES.find((type) => type.identifier === identifier);
-        if (composioType) {
-          // Check if this Composio server is connected
-          const connectedServer = allComposioServers.find((s) => s.identifier === identifier);
-          return {
-            availableInWeb: true,
-            icon: composioType.icon,
-            isInstalled: !!connectedServer || agentInstalled,
-            label: composioType.label,
-            title: composioType.label,
-            type: 'composio' as const,
-          };
-        }
+      const connector = resolveConnectorCatalogItem(identifier, {
+        composio: isComposioEnabledInEnv,
+        lobehub: isLobehubSkillEnabled,
+      });
+      if (connector?.type === 'lobehub') {
+        const connectedServer = allLobehubSkillServers.find((s) => s.identifier === identifier);
+        return {
+          availableInWeb: true,
+          icon: connector.provider.icon,
+          isInstalled: !!connectedServer || agentInstalled,
+          label: connector.provider.label,
+          title: connector.provider.label,
+          type: 'lobehub-skill' as const,
+        };
       }
-
-      // Check if it's a LobeHub Skill provider
-      if (isLobehubSkillEnabled) {
-        const lobehubSkillProvider = LOBEHUB_SKILL_PROVIDERS.find((p) => p.id === identifier);
-        if (lobehubSkillProvider) {
-          // Check if this LobehubSkill provider is connected
-          const connectedServer = allLobehubSkillServers.find((s) => s.identifier === identifier);
-          return {
-            availableInWeb: true,
-            icon: lobehubSkillProvider.icon,
-            isInstalled: !!connectedServer || agentInstalled,
-            label: lobehubSkillProvider.label,
-            title: lobehubSkillProvider.label,
-            type: 'lobehub-skill' as const,
-          };
-        }
+      if (connector?.type === 'composio') {
+        const connectedServer = allComposioServers.find((s) => s.identifier === identifier);
+        return {
+          availableInWeb: true,
+          icon: connector.serverType.icon,
+          isInstalled: !!connectedServer || agentInstalled,
+          label: connector.serverType.label,
+          title: connector.serverType.label,
+          type: 'composio' as const,
+        };
       }
 
       // Check if it's a custom connector
@@ -310,19 +319,14 @@ const PluginTag = memo<PluginTagProps>(
       useAllMetaList,
     ]);
 
-    // Fetch from remote if not found locally
-    const usePluginDetail = useDiscoverStore((s) => s.usePluginDetail);
-    const { data: remoteData, isLoading } = usePluginDetail({
-      identifier: !localMeta && !isInstalled ? identifier : undefined,
-      withManifest: false,
-    });
-
-    // Determine final metadata
+    // Fab profiles are local-only. Unknown tools keep their identifier and a
+    // local fallback icon instead of fetching upstream marketplace metadata.
+    const isLoading = false;
     const meta = localMeta || {
       availableInWeb: true,
-      avatar: remoteData?.avatar,
+      avatar: undefined,
       isInstalled: false,
-      title: remoteData?.title || identifier,
+      title: identifier,
       type: 'plugin' as const,
     };
 
@@ -359,11 +363,15 @@ const PluginTag = memo<PluginTagProps>(
 
       // Builtin type has avatar
       if (meta.type === 'builtin' && 'avatar' in meta && meta.avatar) {
+        if (isUpstreamLobeAsset(meta.avatar))
+          return <Icon fill={cssVar.colorText} icon={McpIcon} size={16} />;
         return <Avatar avatar={meta.avatar} shape={'square'} size={16} style={{ flexShrink: 0 }} />;
       }
 
       // Plugin type
       if ('avatar' in meta) {
+        if (isUpstreamLobeAsset(meta.avatar))
+          return <Icon fill={cssVar.colorText} icon={McpIcon} size={16} />;
         return <PluginAvatar avatar={meta.avatar} size={16} />;
       }
 
@@ -398,7 +406,7 @@ const PluginTag = memo<PluginTagProps>(
           selectable ? (
             <Flexbox horizontal align={'center'} gap={6}>
               <Icon
-                icon={selected ? SquareCheckBig : Square}
+                icon={selected ? (indeterminate ? SquareMinus : SquareCheckBig) : Square}
                 size={14}
                 style={{ color: selected ? cssVar.colorPrimary : cssVar.colorTextQuaternary }}
               />
