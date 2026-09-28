@@ -36,7 +36,7 @@
     "@pierre/trees": "1.0.0-beta.3",
     "@google/genai": "~1.50.1",
     "@huggingface/inference": "^4.13.25",
-    "@icons-pack/react-simple-icons": "^13.13.0",
+    "@icons-pack/react-simple-icons": "13.13.0",
     "@lobehub/analytics": "^1.6.4",
     "@lobehub/charts": "^5.4.0",
     "@lobehub/editor": "^4.27.3",
